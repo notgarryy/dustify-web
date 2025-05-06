@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    padding-top: 60px; /* ensures content starts below the fixed app bar */
+    padding-top: 60px; 
     background-color: #221f1f;
     font-family: Arial, sans-serif;
     color: white;
@@ -86,4 +86,16 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.dashboard-container {
+    background-color: green;
+    display: flex;
+    z-index: 100;
+    height: 120vh;
+    width: 100%;
+}
+
+.lhs-dashboard {
+    background-color: lightblue;
 }
