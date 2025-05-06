@@ -1,0 +1,89 @@
+body {
+    margin: 0;
+    padding-top: 60px; /* ensures content starts below the fixed app bar */
+    background-color: #221f1f;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+.app-bar {
+    width: 100%;
+    background-color: #333;
+    padding: 37px 0;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app-title {
+    margin: 0;
+    color: white;
+    font-family: "Bungee Spice", sans-serif;
+    font-size: 32px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.user-dropdown {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1001;
+}
+
+.dropdown-toggle {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    min-width: 120px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1002;
+}
+
+.dropdown-menu a {
+    color: white;
+    padding: 10px;
+    display: block;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.dropdown-menu a:hover {
+    background-color: #555;
+}
+
+.spinner {
+    border: 8px solid #444;
+    border-top: 8px solid #f39c12;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
