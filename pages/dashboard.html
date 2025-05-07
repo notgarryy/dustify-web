@@ -14,7 +14,23 @@
       href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Lobster&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cal+Sans&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="../assets/images/dustify_logo.png" type="image/png" />
     <script type="module" src="../scripts/main.js"></script>
+    <style>
+      footer {
+        background-color: #1a1a1a;
+        color: #ccc;
+        text-align: center;
+        padding: 10px 20px;
+        font-size: 0.9em;
+        margin-top: 30px;
+        border-top: 1px solid #333;
+      }
+    </style>
   </head>
   <body>
     <div class="app-bar">
@@ -46,9 +62,55 @@
     </div>
 
     <div class="dashboard-container">
-      <div class="lhs-dashboard"></div>
-      <div class="rhs-dashbaord"></div>
+      <div class="lhs-dashboard">
+        <div class="left-info" id="time-container">
+          <div class="clock-container">
+            <div class="clock">
+              <img src="../assets/images/clock template.svg" alt="clock_img" />
+              <div class="hour hand" id="hour"></div>
+              <div class="minute hand" id="minute"></div>
+              <div class="seconds hand" id="seconds"></div>
+            </div>
+          </div>
+          <div class="live-time-container">
+            <div class="day-date-row">
+              <div id="live-day"></div>
+              <div id="live-date"></div>
+            </div>
+            <div id="live-time"></div>
+          </div>
+        </div>
+        <div class="left-info">2</div>
+        <div class="left-info">3</div>
+      </div>
+      <div class="rhs-dashboard">
+        <div class="small-card-container">
+          <div class="small-card">
+            <div id="gauge25"></div>
+            <div class="pm-info-container">
+              <div class="pm-info-title">Live PM2.5 Data:</div>
+              <div id="livePM25"></div>
+              <div id="level-info-25"></div>
+            </div>
+          </div>
+          <div class="small-card">
+            <div id="gauge10"></div>
+            <div class="pm-info-container">
+              <div class="pm-info-title">Live PM10 Data:</div>
+              <div id="livePM10"></div>
+              <div id="level-info-10"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-1">
+          <div class="card-body">
+            <canvas id="pmChart" class="pmChart"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <footer>&copy; 2025 Dustify. All rights reserved.</footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
