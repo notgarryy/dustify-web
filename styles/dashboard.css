@@ -4,6 +4,7 @@ body {
     background-color: #221f1f;
     font-family: Arial, sans-serif;
     color: white;
+    padding-top: 37px;
 }
 
 footer {
@@ -15,6 +16,40 @@ footer {
     font-family: "Cal Sans", sans-serif;
     border-top: 1px solid #333;
     margin-top: 20px;
+}
+
+.left-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* optional, based on your layout */
+}
+
+#connection-container {
+  text-align: center;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 30px;
+  font-family: "Cal Sans", sans-serif;
+}
+
+.indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: gray; /* default before JS updates */
+}
+
+#last-updated {
+    padding: 10px;
+    font-size: 25x;
+    font-family: "Cal Sans", sans-serif;
 }
 
 .app-bar {
@@ -29,6 +64,7 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: fixed;
 }
 
 .app-title {
@@ -99,18 +135,31 @@ footer {
     100% { transform: rotate(360deg); }
 }
 
-.dashboard-container {
+.top-container {
     display: flex;
     width: 100%;
-    margin-top: 13px;
-    /* border: 10px solid white; */
     min-height: auto;
+    padding-top: 20px;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+}
+
+.bot-container {
+    flex: 1 1 40vh;
+    width: 100%;
+    background-color: aqua;
 }
 
 .lhs-dashboard {
     flex: 1 1 30vw;
-    flex-grow: 1;
-    background-color: lightblue;
+    margin-bottom: 0px;
+    /* background-color: lightblue; */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -138,27 +187,27 @@ footer {
 
 #time-container {
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
+    justify-content: center;  
+    align-items: center;     
+    gap: 50px;                
 }
 
 #live-day, #live-date, #live-time {
     font-family: "Cal Sans", sans-serif;
-    font-size: 24px;
-    margin: max(5px, 2%);
+    font-size: 30px;
 }
 
 .rhs-dashboard {
     flex: 3 1 70vw;
-    flex-grow: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: gray;
+    /* background-color: gray; */
+    margin-bottom: 0px;
 }
 
-@media(max-width: 1200px) {
-    .dashboard-container {
+@media(max-width: 1350px) {
+    .dashboard-container, .top-container {
         flex-direction: column;
     }
     .rhs-dashboard,
@@ -229,16 +278,16 @@ footer {
 }
 
 #livePM25, #livePM10, #level-info-25, #level-info-10 {
-    font-size: 24px;
+    font-size: 25px;
     font-weight: 400;
     font-family: "Cal Sans", sans-serif;
 }
 
 .card-1 {
     width: 97%;
-    height: 90%;
+    height: 54.35%;
     background-color: #333;
-    margin: 3%;
+    margin: 3% 3% 0 3%;
     border-radius: 22px;
     display: flex;
     justify-content: center;
@@ -274,16 +323,14 @@ footer {
 }
 
 .clock-container {
-    width: max(11vw, 100px);
-    height: max(11vw, 100px);
-    margin: 0 5% 0 5%;
+    width: max(8vw, 100px);
+    height: max(8vw, 100px);
 }
 
 .clock{
     height: 100%;
     width: 100%;
     background-color: rgba(255,255,255,0.06);
-    margin: auto;
     top: 0;
     bottom: 0;
     right: 0;

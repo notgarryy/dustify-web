@@ -25,14 +25,14 @@ var hour = document.getElementById("hour");
 var minute = document.getElementById("minute");
 var seconds = document.getElementById("seconds");
 
-function clock(){
+function clock() {
     var date_now = new Date();
     var hr = date_now.getHours();
     var min = date_now.getMinutes();
     var sec = date_now.getSeconds();
     var calc_hr = (hr * 30) + (min / 2);
     var calc_min = (min * 6) + (sec / 10);
-    var calc_sec = sec*6;
+    var calc_sec = sec * 6;
     hour.style.transform = 'rotate(' + calc_hr + "deg)";
     minute.style.transform = 'rotate(' + calc_min + 'deg)';
     seconds.style.transform = 'rotate(' + calc_sec + 'deg)';
@@ -70,10 +70,29 @@ async function updateLivePM(user) {
         const liveDocRef = doc(db, "users", user.uid, "pm_data", "!liveData");
         const liveDoc = await getDoc(liveDocRef);
         if (liveDoc.exists()) {
-            const livePM25 = liveDoc.data().pm25;
-            const livePM10 = liveDoc.data().pm10;
+            const livePM25 = liveDoc.data().PM25;
+            const livePM10 = liveDoc.data().PM10;
+            const now = new Date().toLocaleTimeString();
+
             console.log("Updated Live PM2.5:", livePM25);
             console.log("Updated Live PM10:", livePM10);
+
+            // Update labels and chart data
+            if (window.pm25Chart) {
+                const maxPoints = 30; // keep the last 30 data points only
+
+                window.pm25Chart.data.labels.push(now);
+                window.pm25Chart.data.datasets[0].data.push(livePM25);
+                window.pm25Chart.data.datasets[1].data.push(livePM10);
+
+                if (window.pm25Chart.data.labels.length > maxPoints) {
+                    window.pm25Chart.data.labels.shift();
+                    window.pm25Chart.data.datasets[0].data.shift();
+                    window.pm25Chart.data.datasets[1].data.shift();
+                }
+
+                window.pm25Chart.update();
+            }
 
             const pm25Label = getPMLabel(livePM25, true);
             const pm10Label = getPMLabel(livePM10, false);
@@ -89,8 +108,40 @@ async function updateLivePM(user) {
                 window.gaugePM10.refresh(livePM10);
             }
         }
+
+        const connectionDocRef = doc(db, "users", user.uid, "pm_data", "!connection");
+        const connectionDoc = await getDoc(connectionDocRef);
+        if (connectionDoc.exists()) {
+            const connectionData = connectionDoc.data().connected;
+            const lastSeen = connectionDoc.data().timestamp.toDate().toLocaleString();
+            document.getElementById("connection-status").textContent = connectionData ? "Connected" : "Disconnected";
+            document.getElementById("last-updated").textContent = lastSeen;
+        }
+
     } catch (err) {
         console.error("Failed to fetch live data:", err);
+    }
+}
+
+async function updateConnection(user) {
+    try {
+        const connectionDocRef = doc(db, "users", user.uid, "pm_data", "!connection");
+        const connectionDoc = await getDoc(connectionDocRef);
+        if (connectionDoc.exists()) {
+            const connectionData = connectionDoc.data().connected;
+            const lastSeen = connectionDoc.data().timestamp.toDate().toLocaleString();
+            console.log("Connected:", connectionData, lastSeen);
+
+            document.getElementById("connection-status").textContent = connectionData ? "Connected" : "Disconnected";
+            document.getElementById("last-updated").textContent = lastSeen;
+
+            const indicator = document.getElementById("status-indicator");
+            indicator.style.backgroundColor = connectionData ? "lightgreen" : "red";
+
+            console.log(indicator)
+        }
+    } catch (err) {
+        console.error("Failed to update connection:", err);
     }
 }
 
@@ -135,16 +186,23 @@ onAuthStateChanged(auth, async (user) => {
 
             const querySnapshot = await getDocs(collection(db, "users", user.uid, "pm_data"));
             querySnapshot.forEach((doc) => {
-                const timestamp = doc.data()['timestamp'];
+                const data = doc.data();
+                const timestamp = data['timestamp'];
+                const docCreated = data['docCreated'];
                 const today = new Date().toISOString().split('T')[0];
-                const docDate = timestamp.toDate().toISOString().split('T')[0];
+                const docDate = timestamp?.toDate().toISOString().split('T')[0];
 
-                if (docDate == today && doc.id != "!liveData") {
-                    const PM25 = doc.data()['pm25'];
-                    const PM10 = doc.data()['pm10'];
+                if (docDate === today && doc.id !== "!liveData" && doc.id !== "!connection") {
+                    const PM25 = data['avgPM25'];
+                    const PM10 = data['avgPM10'];
                     todayPM25List.push(PM25);
                     todayPM10List.push(PM10);
-                    labels.push(doc.data()['timestamp'].toDate().toTimeString().split(' ')[0]);
+
+                    if (docCreated) {
+                        labels.push(docCreated.toDate().toTimeString().split(' ')[0]);
+                    } else {
+                        labels.push("Unknown Time");
+                    }
                 }
             });
 
@@ -153,7 +211,7 @@ onAuthStateChanged(auth, async (user) => {
 
             document.getElementById("loadingScreen").style.display = "none";
 
-            const pm25Chart = new Chart('pmChart', {
+            window.pm25Chart = new Chart('pmChart', {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -181,7 +239,7 @@ onAuthStateChanged(auth, async (user) => {
                         },
                         title: {
                             display: true,
-                            text: "Hourly Data",
+                            text: "Live Data",
                             color: 'white',
                             font: {
                                 weight: 'bold',
@@ -216,6 +274,7 @@ onAuthStateChanged(auth, async (user) => {
                 }
             });
 
+
             window.gaugePM25 = new JustGage({
                 id: "gauge25",
                 value: livePM25,
@@ -223,7 +282,7 @@ onAuthStateChanged(auth, async (user) => {
                 max: 500,
                 title: "PM2.5",
                 label: "µg/m³",
-                pointer: true,              
+                pointer: true,
                 pointerOptions: {
                     toplength: -15,
                     bottomlength: 10,
@@ -282,11 +341,13 @@ onAuthStateChanged(auth, async (user) => {
             });
 
             updateLivePM(user);
+            updateConnection(user);
             updateTime();
 
             setInterval(() => updateTime(), 1000);
+            setInterval(() => updateConnection(), 1000);
             setInterval(() => clock(), 1000);
-            setInterval(() => updateLivePM(user), 5000);
+            setInterval(() => updateLivePM(user), 60000);
 
         } catch (error) {
             console.error("Error fetching user data:", error);
