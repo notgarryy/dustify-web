@@ -97,7 +97,9 @@
               <div id="last-updated">00.00.00</div>
             </div>
           </div>
-          <div class="left-info"></div>
+          <div class="left-info" id="aqi-gauge">
+            <div id="aqiGauge"></div>
+          </div>
         </div>
         <div class="rhs-dashboard">
           <div class="small-card-container">
@@ -120,12 +122,47 @@
           </div>
           <div class="card-1">
             <div class="card-body">
-              <canvas id="pmChart" class="pmChart"></canvas>
+              <div style="position: relative; width: 100%; height: 100%">
+                <canvas id="pmChart"></canvas>
+                <div
+                  id="chartOverlay"
+                  style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    color: white;
+                    background-color:#333;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    font-weight: bold;
+                    z-index: 10;
+                    display: none;
+                  "
+                >
+                  Waiting for connection...
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- <div class="bot-container"></div> -->
+      <!-- <div class="bot-container">
+        <div class="card-1" id="historyContainer">
+          <div class="card-header">
+            <label for="dateSelect">Select Date:</label>
+            <select id="dateSelect">
+              <option>Loading dates...</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <canvas id="historyChart"></canvas>
+          </div>
+        </div>
+      </div> -->
     </div>
 
     <footer>&copy; 2025 Dustify. All rights reserved.</footer>

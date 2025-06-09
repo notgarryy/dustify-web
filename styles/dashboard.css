@@ -18,6 +18,10 @@ footer {
     margin-top: 20px;
 }
 
+svg {
+    height: 100%;
+}
+
 .left-info {
   display: flex;
   justify-content: center;
@@ -138,7 +142,7 @@ footer {
 .top-container {
     display: flex;
     width: 100%;
-    min-height: auto;
+    height: auto;
     padding-top: 20px;
 }
 
@@ -150,11 +154,27 @@ footer {
     min-height: 100vh;
 }
 
-/* .bot-container {
-    flex: 1 1 40vh;
+.bot-container {
+    display: flex;
+    flex: 1 1 50vh;
     width: 100%;
-    background-color: aqua;
-} */
+    padding-top: 0;
+    margin-top: -2%;
+    /* background-color: aqua; */
+    align-items: center;
+    justify-content: center;
+}
+
+#historyContainer {
+    height: 100%;
+    width: 98%;
+    padding: 0;
+    margin: 0;
+}
+
+#aqiGauge {
+    height: auto;
+}
 
 .lhs-dashboard {
     flex: 1 1 30vw;
@@ -164,6 +184,7 @@ footer {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    height: auto;
 }
 
 .left-info {
@@ -171,6 +192,7 @@ footer {
     width: 93.5%;
     height: 25%;
     align-items: center;
+    justify-content: center;
     margin: 7%;
     margin-bottom: 0px;
     gap: 20px;
@@ -204,9 +226,16 @@ footer {
     align-items: center;
     /* background-color: gray; */
     margin-bottom: 0px;
+    height: auto;
 }
 
 @media(max-width: 1350px) {
+    .bot-container {
+        margin-top: 0px;
+    }
+    #pmChart {
+        height: 100px;
+    }
     .dashboard-container, .top-container {
         flex-direction: column;
     }

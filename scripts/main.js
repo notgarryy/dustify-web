@@ -65,6 +65,9 @@ function getPMLabel(value, isPM25 = true) {
     return "Unknown";
 }
 
+let previousPM25 = null;
+let previousPM10 = null;
+
 async function updateLivePM(user) {
     try {
         const liveDocRef = doc(db, "users", user.uid, "pm_data", "!liveData");
@@ -72,14 +75,21 @@ async function updateLivePM(user) {
         if (liveDoc.exists()) {
             const livePM25 = liveDoc.data().PM25;
             const livePM10 = liveDoc.data().PM10;
+
+            if (livePM25 === previousPM25 && livePM10 === previousPM10) {
+                return; // Skip update
+            }
+
+            previousPM25 = livePM25;
+            previousPM10 = livePM10;
+
             const now = new Date().toLocaleTimeString();
 
             console.log("Updated Live PM2.5:", livePM25);
             console.log("Updated Live PM10:", livePM10);
 
-            // Update labels and chart data
             if (window.pm25Chart) {
-                const maxPoints = 30; // keep the last 30 data points only
+                const maxPoints = 30;
 
                 window.pm25Chart.data.labels.push(now);
                 window.pm25Chart.data.datasets[0].data.push(livePM25);
@@ -100,12 +110,17 @@ async function updateLivePM(user) {
             document.getElementById("livePM25").textContent = `${livePM25} µg/m³`;
             document.getElementById("livePM10").textContent = `${livePM10} µg/m³`;
 
+            let liveAQI = getAQI(livePM25, livePM10);
+
+            console.log(liveAQI);
+
             document.getElementById("level-info-25").textContent = pm25Label;
             document.getElementById("level-info-10").textContent = pm10Label;
 
-            if (window.gaugePM25 && window.gaugePM10) {
+            if (window.gaugePM25 && window.gaugePM10 && window.aqiGauge) {
                 window.gaugePM25.refresh(livePM25);
                 window.gaugePM10.refresh(livePM10);
+                window.aqiGauge.refresh(liveAQI);
             }
         }
 
@@ -126,20 +141,22 @@ async function updateLivePM(user) {
 async function updateConnection(user) {
     try {
         const connectionDocRef = doc(db, "users", user.uid, "pm_data", "!connection");
-        const connectionDoc = await getDoc(connectionDocRef);
-        if (connectionDoc.exists()) {
-            const connectionData = connectionDoc.data().connected;
-            const lastSeen = connectionDoc.data().timestamp.toDate().toLocaleString();
-            console.log("Connected:", connectionData, lastSeen);
+        getDoc(connectionDocRef).then((connectionDoc) => {
+            if (connectionDoc.exists()) {
+                const connectionData = connectionDoc.data().connected;
+                const lastSeen = connectionDoc.data().timestamp.toDate().toLocaleString();
 
-            document.getElementById("connection-status").textContent = connectionData ? "Connected" : "Disconnected";
-            document.getElementById("last-updated").textContent = lastSeen;
+                document.getElementById("connection-status").textContent = connectionData ? "Connected" : "Disconnected";
+                document.getElementById("last-updated").textContent = "Last Connected:  " + lastSeen;
 
-            const indicator = document.getElementById("status-indicator");
-            indicator.style.backgroundColor = connectionData ? "lightgreen" : "red";
+                const indicator = document.getElementById("status-indicator");
+                indicator.style.backgroundColor = connectionData ? "lightgreen" : "red";
 
-            console.log(indicator)
-        }
+                // Show or hide chart overlay
+                const overlay = document.getElementById("chartOverlay");
+                overlay.style.display = connectionData ? "none" : "flex";
+            }
+        });
     } catch (err) {
         console.error("Failed to update connection:", err);
     }
@@ -163,6 +180,43 @@ function updateTime() {
     document.getElementById("live-day").textContent = day;
     document.getElementById("live-date").textContent = date;
     document.getElementById("live-time").textContent = time;
+}
+
+function calculateAQI(concentration, breakpoints) {
+  for (let i = 0; i < breakpoints.length; i++) {
+    const bp = breakpoints[i];
+    if (concentration >= bp.C_lo && concentration <= bp.C_hi) {
+      const { I_lo, I_hi, C_lo, C_hi } = bp;
+      const aqi = ((I_hi - I_lo) / (C_hi - C_lo)) * (concentration - C_lo) + I_lo;
+      return Math.round(aqi);
+    }
+  }
+  return -1; // out of range
+}
+
+const pm25Breakpoints = [
+  { C_lo: 0.0, C_hi: 12.0, I_lo: 0, I_hi: 50 },
+  { C_lo: 12.1, C_hi: 35.4, I_lo: 51, I_hi: 100 },
+  { C_lo: 35.5, C_hi: 55.4, I_lo: 101, I_hi: 150 },
+  { C_lo: 55.5, C_hi: 150.4, I_lo: 151, I_hi: 200 },
+  { C_lo: 150.5, C_hi: 250.4, I_lo: 201, I_hi: 300 },
+  { C_lo: 250.5, C_hi: 500.4, I_lo: 301, I_hi: 500 }
+];
+
+const pm10Breakpoints = [
+  { C_lo: 0, C_hi: 54, I_lo: 0, I_hi: 50 },
+  { C_lo: 55, C_hi: 154, I_lo: 51, I_hi: 100 },
+  { C_lo: 155, C_hi: 254, I_lo: 101, I_hi: 150 },
+  { C_lo: 255, C_hi: 354, I_lo: 151, I_hi: 200 },
+  { C_lo: 355, C_hi: 424, I_lo: 201, I_hi: 300 },
+  { C_lo: 425, C_hi: 604, I_lo: 301, I_hi: 500 }
+];
+
+function getAQI(pm25, pm10) {
+  const aqiPm25 = calculateAQI(pm25, pm25Breakpoints);
+  const aqiPm10 = calculateAQI(pm10, pm10Breakpoints);
+
+  return Math.max(aqiPm25, aqiPm10);
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -274,6 +328,29 @@ onAuthStateChanged(auth, async (user) => {
                 }
             });
 
+            let aqiValue = 0;
+
+            window.aqiGauge = new JustGage({
+            id: "aqiGauge",
+            value: aqiValue,
+            min: 0,
+            max: 500,
+            valueFontColor: "white",
+            title: "Air Quality Index",
+            label: "AQI",
+            levelColors: ["#00e400", "#ffff00", "#ff7e00", "#ff0000", "#8f3f97", "#7e0023"],
+            customSectors: [
+                { color: "#00e400", lo: 0, hi: 50 },     // Good
+                { color: "#ffff00", lo: 51, hi: 100 },   // Moderate
+                { color: "#ff7e00", lo: 101, hi: 150 },  // Unhealthy for sensitive
+                { color: "#ff0000", lo: 151, hi: 200 },  // Unhealthy
+                { color: "#8f3f97", lo: 201, hi: 300 },  // Very Unhealthy
+                { color: "#7e0023", lo: 301, hi: 500 },  // Hazardous
+            ],
+            gaugeWidthScale: 0.6,
+            hideInnerShadow: true
+            });
+
 
             window.gaugePM25 = new JustGage({
                 id: "gauge25",
@@ -345,7 +422,7 @@ onAuthStateChanged(auth, async (user) => {
             updateTime();
 
             setInterval(() => updateTime(), 1000);
-            setInterval(() => updateConnection(), 1000);
+            setInterval(() => updateConnection(user), 1000);
             setInterval(() => clock(), 1000);
             setInterval(() => updateLivePM(user), 60000);
 
